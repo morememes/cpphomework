@@ -6,6 +6,12 @@
 #include <iterator>
 #include <algorithm>
 #include <type_traits>
+#include <unistd.h>
+#include "../MyThread.h"
+
+
+#define THREAD_MAX std::thread::hardware_concurrency()
+std::vector<MyThread> vecThr{THREAD_MAX};
 
 template<class T, size_t N>
 std::array<T, N> generateArr(){
@@ -28,21 +34,29 @@ void test(){
 }
 
 template <class Iter>
+int my_sort(Iter a, Iter b){
+    std::sort(a, b);
+    std::cout << "My sort has worked." << std::endl;
+    return 0;
+}
+template <class Iter>
+void thread_runner(Iter a, Iter b){
+    MyThread thr([a, b](){ return wrapper(std::sort<Iter>, a, b);});
+    thr.join();
+}
+
+template <class Iter>
 void MergeSortM(Iter b, Iter e){
-    unsigned int n = std::thread::hardware_concurrency();
+    //unsigned int n = std::thread::hardware_concurrency();
     //std::cout << n << " concurrent threads are supported.\n";
     size_t size_arr = e - b;
-    size_t shift = size_arr / n;
-    std::vector<std::thread> vecThr;
-    for (int i = 0; i < n-1; i++)
+    size_t shift = size_arr / THREAD_MAX;
+
+    for (int i = 0; i < THREAD_MAX-1; i++)
     {
-        vecThr.push_back(
-                std::thread(MergeSort<Iter>, b + shift*i, b + shift*(i+1)) );
+        thread_runner(b + shift*i, b + shift*(i+1));
     }
-    vecThr.push_back(
-            std::thread(MergeSort<Iter>, b + (n-1)*shift, e));
-    for (auto &thr : vecThr)
-        thr.join();
+    thread_runner(b + 3*shift, e);
     BackSort(b, b+shift, b+shift, b+shift*2);
     BackSort(b + shift*2, b+shift*3, b+shift*3, e);
     BackSort(b, b+shift*2, b+shift*2 , e);
@@ -50,7 +64,7 @@ void MergeSortM(Iter b, Iter e){
 
 template <size_t N>
 void testSort(){
-    std::array<int, N> arr =  generateArr<int, N>();
+    std::array<int, N> arr = generateArr<int, N>();
     std::array<int, N> arr1(arr);
     //for (auto &el : arr)
     //   std::cout << el << " ";
@@ -65,26 +79,6 @@ void testSort(){
     //std::cout << chp1 << " "  << chp2.count() << " " << chp3.count() << " " << std::endl;
     std::cout << "Size: " << N << " Result: " << (arr == arr1 ? "OK" : "FAIL") << " Threads: " << (chp3 - chp2).count() << " WithoutThreads: " << (chp2 - chp1).count() << std::endl;
 }
-
-int main() {
-    const size_t N = 1000;
-    const size_t sizes[] = {10, 50, 100, 500, 1000, 2000, 4000};
-    std::vector<int> vec = { 9,5,4,3,2,1,6,7,5,10 };
-    testSort<10>();
-    testSort<50>();
-    testSort<100>();
-    testSort<500>();
-    testSort<1000>();
-    testSort<2000>();
-    testSort<4000>();
-    testSort<8000>();
-    testSort<12000>();
-    testSort<16000>();
-    testSort<20000>();
-
-    return 0;
-}
-
 
 template <class T>
 struct mytraits{
@@ -150,3 +144,4 @@ void BackSort(Iter s1, Iter e1, Iter s2, Iter e2) {
 
     delete [] a;
 }
+
