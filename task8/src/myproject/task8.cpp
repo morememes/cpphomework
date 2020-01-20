@@ -28,24 +28,50 @@ void test(){
 }
 
 template <class Iter>
+void BackSortM(std::vector<std::pair<Iter, Iter>> vec){
+    size_t sizeV = vec.size();
+    std::vector<std::pair<Iter, Iter>> forbacksort;
+    if (sizeV <= 1)
+        return;
+    if (sizeV % 2 == 0){
+        for (int i =0; i < sizeV-1; i=i+2)
+        {
+            BackSort(vec[i].first, vec[i].second, vec[i+1].first, vec[i+1].second);
+            forbacksort.push_back(std::pair<Iter, Iter>(vec[i].first, vec[i+1].second));
+        }
+    } else{
+        for (int i =0; i < sizeV-2; i=i+2)
+        {
+            BackSort(vec[i].first, vec[i].second, vec[i+1].first, vec[i+1].second);
+            forbacksort.push_back(std::pair<Iter, Iter>(vec[i].first, vec[i + 1].second));
+        }
+        forbacksort.push_back(std::pair<Iter, Iter>(vec[sizeV-1].first, vec[sizeV-1].second));
+        //BackSort(vec[0].first, vec[sizeV-2].second, vec[sizeV-1].first, vec[sizeV-1].second);
+    }
+    BackSortM(forbacksort);
+    //return;
+}
+
+template <class Iter>
 void MergeSortM(Iter b, Iter e){
     unsigned int n = std::thread::hardware_concurrency();
     //std::cout << n << " concurrent threads are supported.\n";
     size_t size_arr = e - b;
     size_t shift = size_arr / n;
     std::vector<std::thread> vecThr;
+    std::vector<std::pair<Iter, Iter>> forbacksort;
     for (int i = 0; i < n-1; i++)
     {
         vecThr.push_back(
                 std::thread(MergeSort<Iter>, b + shift*i, b + shift*(i+1)) );
+        forbacksort.push_back(std::pair<Iter, Iter>(b+shift*i, b+shift*(i+1)));
     }
     vecThr.push_back(
             std::thread(MergeSort<Iter>, b + (n-1)*shift, e));
+    forbacksort.push_back(std::pair<Iter, Iter>(b + (n-1)*shift, e));
     for (auto &thr : vecThr)
         thr.join();
-    BackSort(b, b+shift, b+shift, b+shift*2);
-    BackSort(b + shift*2, b+shift*3, b+shift*3, e);
-    BackSort(b, b+shift*2, b+shift*2 , e);
+    BackSortM(forbacksort);
 }
 
 template <size_t N>
