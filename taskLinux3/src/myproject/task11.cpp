@@ -7,7 +7,7 @@
 
 int main() {
     
-    testSort<10>();
+    testSort<20>();
     testSort<50>();
     testSort<100>();
     testSort<500>();
