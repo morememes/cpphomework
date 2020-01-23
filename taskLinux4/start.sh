@@ -12,7 +12,7 @@
 
 echo "Starting..."
 ./build/src/myproject/unblock_server/unblockserver &
-./build/src/myproject/client_tester/tester "Hello, there!" 400 25 100 0
+./build/src/myproject/client_tester/tester "Hello, there!" 200 25 100 0
 wait
 ./build/src/myproject/block_server/blockserver &
 ./build/src/myproject/client_tester/tester "Hello, there!" 40 25 10 1
