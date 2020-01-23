@@ -54,7 +54,7 @@ int main()
                     return 1;
                 }
             } else {
-                char exit_m[] = "exit";
+                //char exit_m[] = "exit";
                 int bytes = recv(fd_temp, buff, sizeof(buff), 0);
                 //std::cout << buff << " " << sizeof(buff) << std::endl;
                 if (bytes == -1) {
@@ -78,7 +78,8 @@ int main()
                     //std::cout << "Disconnected: " << fd_temp << std::endl;
                     continue;
                 }
-                if (send(fd_temp, buff, bytes, 0) == -1) {
+                int sended = send(fd_temp, buff, bytes, 0);
+                if ((sended == -1) || (sended != bytes)) {
                     error(0, errno, "send()");
                     close(epfd);
                     close(fd_server);

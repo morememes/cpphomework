@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
         server_test(results, clients_number, iters, shift, message, main_pid);
         if (getpid() == main_pid) {
             if (block == 1) {
-                std::cout << "Waiting 11 sec, server is shutting down.\n";
+                std::cout << "Wait 11 sec, server is shutting down.\n";
                 sleep(11);
             }
             shutdown_server();
@@ -33,9 +33,8 @@ int main(int argc, char* argv[]) {
 
         if (getpid() == main_pid) {
             for (auto &el : results) {
-                std::cout << "Clients number: " << el.clients << ". Time passed: " << el.timer
-                          << ". Speed of connection: "
-                          << el.speed << " iter/s." << std::endl;
+            std::cout << "Clients number: " << el.clients << ". Time passed: " << el.timer << ". Speed of connection: "
+                      << el.speed << " iter/s. Correct: " << (el.correct ? "TRUE" : "FALSE") << std::endl;
             }
         }
     }

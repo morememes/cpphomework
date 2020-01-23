@@ -33,7 +33,7 @@ void shutdown_server(){
     close(fd);
 }
 
-void client_start(char message[], int iters = 15, int bufsize = 1024) {
+void client_start(char message[], bool &correct,  int iters = 15, int bufsize = 1024) {
     //std::cout << message << std::endl;
     char buf[bufsize];
 
@@ -46,21 +46,26 @@ void client_start(char message[], int iters = 15, int bufsize = 1024) {
     bind(fd, (sockaddr* ) &any, sizeof(any));
     connect(fd, (sockaddr*) &addr, sizeof(addr));
 
+    correct = true;
     for (int i=0; i < iters; i++) {
-        send(fd, message, bufsize, 0);
-        recv(fd, buf, bufsize, 0);
-        //std::cout << buf << std::endl;
+        int sended = send(fd, message, 1024, 0);
+        int bytes = recv(fd, buf, bufsize, 0);
+        if (std::strncmp(message, buf, std::strlen(message)) != 0)
+            correct = false;
+
+        //std::cout << (std::strncmp(message, buf, std::strlen(message)) == 0 ? "OK" : "FAIL") << std::endl;
+        //std::cout << bytes << std::endl << buf << std::endl;
     }
     shutdown(fd, SHUT_RDWR);
     close(fd);
 }
 
-void test_server(char message[], int clients_number, pid_t main_pid, int iters = 15){
+void test_server(char message[], int clients_number, pid_t main_pid, bool& correct,int iters = 15){
     for (int i=0;i<clients_number;i++){
         if (getpid() == main_pid) {
             if (fork() == 0) {
                 //std::cout << "Process created: " << getpid() << std::endl;
-                client_start(message, iters = iters);
+                client_start(message, correct, iters = iters);
             }
         }
     }
@@ -69,7 +74,7 @@ void test_server(char message[], int clients_number, pid_t main_pid, int iters =
             int status;
             pid_t done = wait(&status);
             if (done == -1) {
-                if (errno == ECHILD) break; 
+                if (errno == ECHILD) break;
             } else {
                 if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
                     std::cerr << "pid " << done << " failed" << std::endl;
